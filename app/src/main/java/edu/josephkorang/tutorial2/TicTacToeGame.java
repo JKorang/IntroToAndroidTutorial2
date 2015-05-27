@@ -69,7 +69,7 @@ public class TicTacToeGame {
 
         for (int i = 0; i <= 2; i++) {
             if (mBoard[i] == COMPUTER_PLAYER && mBoard[i+3] == COMPUTER_PLAYER && mBoard[i+6] == COMPUTER_PLAYER) {
-                return 2;
+                return 3;
             }
         }
 
@@ -78,13 +78,13 @@ public class TicTacToeGame {
             return 2;
         }
         if ((mBoard[2] == HUMAN_PLAYER && mBoard[4] == HUMAN_PLAYER && mBoard[6] == HUMAN_PLAYER)) {
-            return 2;
-        }
-
-        if ((mBoard[0] == HUMAN_PLAYER && mBoard[4] == HUMAN_PLAYER && mBoard[8] == HUMAN_PLAYER)) {
             return 3;
         }
-        if ((mBoard[2] == HUMAN_PLAYER && mBoard[4] == HUMAN_PLAYER && mBoard[6] == HUMAN_PLAYER)) {
+
+        if ((mBoard[0] == COMPUTER_PLAYER && mBoard[4] == COMPUTER_PLAYER && mBoard[8] == COMPUTER_PLAYER)) {
+            return 3;
+        }
+        if ((mBoard[2] == COMPUTER_PLAYER && mBoard[4] == COMPUTER_PLAYER && mBoard[6] == COMPUTER_PLAYER)) {
             return 3;
         }
 

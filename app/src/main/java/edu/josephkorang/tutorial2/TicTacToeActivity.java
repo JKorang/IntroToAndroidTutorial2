@@ -1,8 +1,8 @@
 package edu.josephkorang.tutorial2;
 
-import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 
-public class TicTacToeActivity extends Activity {
+public class TicTacToeActivity extends ActionBarActivity {
 
     // Buttons making up the board
     private Button mBoardButtons[];
@@ -20,6 +20,9 @@ public class TicTacToeActivity extends Activity {
 
     // Various text displayed
     private TextView mInfoTextView;
+
+    // Prevents input after game ends
+    private Boolean mGameOver;
 
     /** Called when the activity is first created. */
     @Override
@@ -64,6 +67,7 @@ public class TicTacToeActivity extends Activity {
     private void startNewGame() {
 
         mGame.clearBoard();
+        mGameOver = false;
 
         // Reset all buttons
         for (int i = 0; i < mBoardButtons.length; i++) {
@@ -73,19 +77,18 @@ public class TicTacToeActivity extends Activity {
         }
 
         // Human goes first
-        mInfoTextView.setText("You go first.");
+        mInfoTextView.setText(R.string.first_human);
 
     }
 
     private void setMove(char player, int location) {
-
-        mGame.setMove(player, location);
-        mBoardButtons[location].setEnabled(false);
-        mBoardButtons[location].setText(String.valueOf(player));
-        if (player == TicTacToeGame.HUMAN_PLAYER)
-            mBoardButtons[location].setTextColor(Color.rgb(0, 200, 0));
-        else
-            mBoardButtons[location].setTextColor(Color.rgb(200, 0, 0));
+            mGame.setMove(player, location);
+            mBoardButtons[location].setEnabled(false);
+            mBoardButtons[location].setText(String.valueOf(player));
+            if (player == TicTacToeGame.HUMAN_PLAYER)
+                mBoardButtons[location].setTextColor(Color.rgb(0, 200, 0));
+            else
+                mBoardButtons[location].setTextColor(Color.rgb(200, 0, 0));
     }
 
     // Handles clicks on the game board buttons
@@ -103,20 +106,33 @@ public class TicTacToeActivity extends Activity {
                 // If no winner yet, let the computer make a move
                 int winner = mGame.checkForWinner();
                 if (winner == 0) {
-                    mInfoTextView.setText("It's Android's turn");
+                    mInfoTextView.setText(R.string.turn_computer);
                     int move = mGame.getComputerMove();
                     setMove(TicTacToeGame.COMPUTER_PLAYER, move);
                     winner = mGame.checkForWinner();
                 }
 
                 if (winner == 0)
-                    mInfoTextView.setText("It's your turn.");
-                else if (winner == 1)
-                    mInfoTextView.setText("It's a tie!");
-                else if (winner == 2)
+                    mInfoTextView.setText(R.string.turn_human);
+                else if (winner == 1) {
+                    mInfoTextView.setText(R.string.result_tie);
+                    mGameOver = true;
+                }
+                else if (winner == 2) {
                     mInfoTextView.setText(R.string.result_human_wins);
-                else
-                    mInfoTextView.setText("Android won!");
+                    mGameOver = true;
+                }
+                else {
+                    mInfoTextView.setText(R.string.result_computer_wins);
+                    mGameOver = true;
+                }
+            }
+
+            // Remove the buttons as clickable
+            if (mGameOver == true) {
+                for (int i = 0; i < mBoardButtons.length; i++) {
+                    mBoardButtons[i].setEnabled(false);
+                }
             }
         }
     }
