@@ -1,5 +1,6 @@
 package edu.josephkorang.tutorial2;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -20,6 +21,12 @@ public class TicTacToeActivity extends ActionBarActivity {
 
     // Various text displayed
     private TextView mInfoTextView;
+    private TextView mWinsValue;
+    private TextView mLossesValue;
+    private TextView mTiesValue;
+
+    // Who plays first next game
+    private Boolean mFirstMove;
 
     // Prevents input after game ends
     private Boolean mGameOver;
@@ -42,11 +49,38 @@ public class TicTacToeActivity extends ActionBarActivity {
         mBoardButtons[8] = (Button) findViewById(R.id.nine);
 
         mInfoTextView = (TextView) findViewById(R.id.information);
+        mWinsValue = (TextView) findViewById(R.id.humanWinsValue);
+        mLossesValue = (TextView) findViewById(R.id.androidWinsValue);
+        mTiesValue = (TextView) findViewById(R.id.tiesValue);
 
-                mGame = new TicTacToeGame();
+        initScores();
+
+        mFirstMove = true;
+        mGame = new TicTacToeGame();
 
         startNewGame();
     }
+
+    private void initScores() {
+        //Handle saving/loading of wins and losses
+        SharedPreferences scores = this.getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE);
+        Boolean init = scores.getBoolean("init", false);
+        //Verify if the fields have been setup yet
+        //If not, create them within SharedPreferences
+        if (init == false) {
+            scores.edit().putInt("wins", 0).commit();
+            scores.edit().putInt("ties", 0).commit();
+            scores.edit().putInt("losses", 0).commit();
+            scores.edit().putBoolean("init", true).commit();
+        }
+        //The scores do exist. Load them into the appropriate TextViews.
+        else {
+            mWinsValue.setText(String.valueOf(scores.getInt("wins", 0)));
+            mTiesValue.setText(String.valueOf(scores.getInt("ties", 0)));
+            mLossesValue.setText(String.valueOf(scores.getInt("losses", 0)));
+        }
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -76,8 +110,17 @@ public class TicTacToeActivity extends ActionBarActivity {
             mBoardButtons[i].setOnClickListener(new ButtonClickListener(i));
         }
 
-        // Human goes first
-        mInfoTextView.setText(R.string.first_human);
+        if (mFirstMove == true) {
+            // Human goes first
+            mInfoTextView.setText(R.string.first_human);
+        }
+        else {
+            // Computer goes first
+            mInfoTextView.setText(R.string.turn_computer);
+            int move = mGame.getComputerMove();
+            setMove(TicTacToeGame.COMPUTER_PLAYER, move);
+            mInfoTextView.setText(R.string.turn_human);
+        }
 
     }
 
@@ -114,17 +157,20 @@ public class TicTacToeActivity extends ActionBarActivity {
 
                 if (winner == 0)
                     mInfoTextView.setText(R.string.turn_human);
+
                 else if (winner == 1) {
                     mInfoTextView.setText(R.string.result_tie);
-                    mGameOver = true;
+                    setScores("ties");
                 }
+
                 else if (winner == 2) {
                     mInfoTextView.setText(R.string.result_human_wins);
-                    mGameOver = true;
+                    setScores("wins");
                 }
+
                 else {
                     mInfoTextView.setText(R.string.result_computer_wins);
-                    mGameOver = true;
+                    setScores("losses");
                 }
             }
 
@@ -133,7 +179,23 @@ public class TicTacToeActivity extends ActionBarActivity {
                 for (int i = 0; i < mBoardButtons.length; i++) {
                     mBoardButtons[i].setEnabled(false);
                 }
+
+                //Change who goes first next game
+                if (mFirstMove == true) {
+                    mFirstMove = false;
+                }
+                else {
+                    mFirstMove = true;
+                }
             }
         }
+    }
+
+    private void setScores(String typeOfVictory) {
+        int scoreToChange = getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE).getInt(typeOfVictory, 0);
+        getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE).edit().putInt(typeOfVictory, scoreToChange+1).commit();
+
+        mGameOver = true;
+        initScores();
     }
 }

@@ -8,4 +8,7 @@
     <string name="result_human_wins">You won!</string>
     <string name="result_computer_wins">Android won!</string>
     <string name="action_settings">Settings</string>
+    <string name="humanWinsLabel">Human:</string>
+    <string name="tiesLabel">Ties:</string>
+    <string name="androidWinsLabel">Android:</string>
 </resources>
