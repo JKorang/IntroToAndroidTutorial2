@@ -24,5 +24,6 @@
 
     <string name="aboutMessage">Choose from one of three difficulty levels.\nDon\'t let the computer win!</string>
     <string name="ok">Ok</string>
+    <string name="newGame">New Game</string>
 
 </resources>

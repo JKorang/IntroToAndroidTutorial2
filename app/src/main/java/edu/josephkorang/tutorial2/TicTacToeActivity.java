@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -51,6 +52,9 @@ public class TicTacToeActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tic_tac_toe);
 
+
+        Log.i("TTTAct", "Build buttons, onCreate");
+
         mBoardButtons = new Button[TicTacToeGame.BOARD_SIZE];
         mBoardButtons[0] = (Button) findViewById(R.id.one);
         mBoardButtons[1] = (Button) findViewById(R.id.two);
@@ -69,6 +73,7 @@ public class TicTacToeActivity extends ActionBarActivity {
 
         initScores();
 
+        Log.i("TTTAct", "Begin game");
         mFirstMove = true;
         mGame = new TicTacToeGame();
 
@@ -76,6 +81,8 @@ public class TicTacToeActivity extends ActionBarActivity {
     }
 
     private void initScores() {
+
+        Log.i("TTTAct", "Begin obtaining scores");
         //Handle saving/loading of wins and losses
         SharedPreferences scores = this.getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE);
         Boolean init = scores.getBoolean("init", false);
@@ -93,6 +100,7 @@ public class TicTacToeActivity extends ActionBarActivity {
             mTiesValue.setText(String.valueOf(scores.getInt("ties", 0)));
             mLossesValue.setText(String.valueOf(scores.getInt("losses", 0)));
         }
+        Log.i("TTTAct", "End obtaining scores");
     }
 
 
@@ -110,18 +118,23 @@ public class TicTacToeActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.new_game:
+                Log.i("TTTAct", "new_game menu button pressed");
                 startNewGame();
+                Toast.makeText(getApplicationContext(), R.string.newGame,Toast.LENGTH_SHORT).show();
                 return true;
 
             case R.id.ai_difficulty:
+                Log.i("TTTAct", "ai_difficulty menu button pressed");
                 showDialog(DIALOG_DIFFICULTY_ID);
                 return true;
 
             case R.id.about:
+                Log.i("TTTAct", "about menu button pressed");
                 showDialog(DIALOG_ABOUT_ID);
                 return true;
 
             case R.id.quit:
+                Log.i("TTTAct", "quit menu button pressed");
                 showDialog(DIALOG_QUIT_ID);
                 return true;
         }
@@ -142,6 +155,8 @@ public class TicTacToeActivity extends ActionBarActivity {
             mBoardButtons[i].setOnClickListener(new ButtonClickListener(i));
         }
 
+        Log.i("TTTAct", "Set/begin first move");
+
         if (mFirstMove == true) {
             // Human goes first
             mInfoTextView.setText(R.string.first_human);
@@ -156,6 +171,7 @@ public class TicTacToeActivity extends ActionBarActivity {
     }
 
     private void setMove(char player, int location) {
+        Log.i("TTTAct", "Begin set move");
         mGame.setMove(player, location);
         mBoardButtons[location].setEnabled(false);
         mBoardButtons[location].setText(String.valueOf(player));
@@ -163,6 +179,8 @@ public class TicTacToeActivity extends ActionBarActivity {
             mBoardButtons[location].setTextColor(Color.rgb(0, 200, 0));
         else
             mBoardButtons[location].setTextColor(Color.rgb(200, 0, 0));
+        Log.i("TTTAct", "End set move");
+
     }
 
     // Handles clicks on the game board buttons
