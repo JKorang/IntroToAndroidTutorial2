@@ -1,14 +1,19 @@
 package edu.josephkorang.tutorial2;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class TicTacToeActivity extends ActionBarActivity {
@@ -31,7 +36,13 @@ public class TicTacToeActivity extends ActionBarActivity {
     // Prevents input after game ends
     private Boolean mGameOver;
 
-    /** Called when the activity is first created. */
+    // Dialog Constraints
+    static final int DIALOG_DIFFICULTY_ID = 0;
+    static final int DIALOG_QUIT_ID = 1;
+
+    /**
+     * Called when the activity is first created.
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,15 +96,27 @@ public class TicTacToeActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        menu.add("New Game");
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.options_menu, menu);
         return true;
     }
 
 
     // Handles menu item selections
     public boolean onOptionsItemSelected(MenuItem item) {
-        startNewGame();
-        return true;
+        switch (item.getItemId()) {
+            case R.id.new_game:
+                startNewGame();
+                return true;
+            case R.id.ai_difficulty:
+                showDialog(DIALOG_DIFFICULTY_ID);
+                return true;
+            case R.id.quit:
+                showDialog(DIALOG_QUIT_ID);
+                return true;
+        }
+        return false;
     }
 
 
@@ -113,8 +136,7 @@ public class TicTacToeActivity extends ActionBarActivity {
         if (mFirstMove == true) {
             // Human goes first
             mInfoTextView.setText(R.string.first_human);
-        }
-        else {
+        } else {
             // Computer goes first
             mInfoTextView.setText(R.string.turn_computer);
             int move = mGame.getComputerMove();
@@ -125,13 +147,13 @@ public class TicTacToeActivity extends ActionBarActivity {
     }
 
     private void setMove(char player, int location) {
-            mGame.setMove(player, location);
-            mBoardButtons[location].setEnabled(false);
-            mBoardButtons[location].setText(String.valueOf(player));
-            if (player == TicTacToeGame.HUMAN_PLAYER)
-                mBoardButtons[location].setTextColor(Color.rgb(0, 200, 0));
-            else
-                mBoardButtons[location].setTextColor(Color.rgb(200, 0, 0));
+        mGame.setMove(player, location);
+        mBoardButtons[location].setEnabled(false);
+        mBoardButtons[location].setText(String.valueOf(player));
+        if (player == TicTacToeGame.HUMAN_PLAYER)
+            mBoardButtons[location].setTextColor(Color.rgb(0, 200, 0));
+        else
+            mBoardButtons[location].setTextColor(Color.rgb(200, 0, 0));
     }
 
     // Handles clicks on the game board buttons
@@ -161,14 +183,10 @@ public class TicTacToeActivity extends ActionBarActivity {
                 else if (winner == 1) {
                     mInfoTextView.setText(R.string.result_tie);
                     setScores("ties");
-                }
-
-                else if (winner == 2) {
+                } else if (winner == 2) {
                     mInfoTextView.setText(R.string.result_human_wins);
                     setScores("wins");
-                }
-
-                else {
+                } else {
                     mInfoTextView.setText(R.string.result_computer_wins);
                     setScores("losses");
                 }
@@ -183,8 +201,7 @@ public class TicTacToeActivity extends ActionBarActivity {
                 //Change who goes first next game
                 if (mFirstMove == true) {
                     mFirstMove = false;
-                }
-                else {
+                } else {
                     mFirstMove = true;
                 }
             }
@@ -193,9 +210,81 @@ public class TicTacToeActivity extends ActionBarActivity {
 
     private void setScores(String typeOfVictory) {
         int scoreToChange = getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE).getInt(typeOfVictory, 0);
-        getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE).edit().putInt(typeOfVictory, scoreToChange+1).commit();
+        getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE).edit().putInt(typeOfVictory, scoreToChange + 1).commit();
 
         mGameOver = true;
         initScores();
     }
+
+    @Override
+    protected Dialog onCreateDialog(int id) {
+        Dialog dialog = null;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        switch (id) {
+            case DIALOG_DIFFICULTY_ID:
+                builder.setTitle(R.string.difficulty_choose);
+                final CharSequence[] levels = {
+                        getResources().getString(R.string.difficulty_easy),
+                        getResources().getString(R.string.difficulty_harder),
+                        getResources().getString(R.string.difficulty_expert)};
+
+                // selected is the radio button that should be selected.
+                int selected = -1;
+                if (mGame.getmDifficultyLevel() == TicTacToeGame.difficultyLevel.Easy)
+                    selected = 0;
+                else if (mGame.getmDifficultyLevel() == TicTacToeGame.difficultyLevel.Harder)
+                    selected = 1;
+                else if (mGame.getmDifficultyLevel() == TicTacToeGame.difficultyLevel.Expert)
+                    selected = 2;
+
+               // final int selected = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+
+                builder.setSingleChoiceItems(levels, selected,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int item) {
+                                dialog.dismiss(); // Close dialog
+
+                                switch (item) {
+                                    case 0:
+                                        mGame.setmDifficultyLevel(TicTacToeGame.difficultyLevel.Easy);
+                                        break;
+                                    case 1:
+                                        mGame.setmDifficultyLevel(TicTacToeGame.difficultyLevel.Harder);
+                                        break;
+                                    case 2:
+                                        mGame.setmDifficultyLevel(TicTacToeGame.difficultyLevel.Expert);
+                                        break;
+                                }
+
+                                startNewGame();
+
+                                // Display the selected difficulty level
+                                Toast.makeText(getApplicationContext(), levels[item],
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                dialog = builder.create();
+
+                break;
+
+            case DIALOG_QUIT_ID:
+                // Create the quit confirmation dialog
+
+                builder.setMessage(R.string.quit_question)
+                        .setCancelable(false)
+                        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                TicTacToeActivity.this.finish();
+                            }
+                        })
+                        .setNegativeButton(R.string.no, null);
+                dialog = builder.create();
+
+                break;
+        }
+
+        return dialog;
+    }
+
 }

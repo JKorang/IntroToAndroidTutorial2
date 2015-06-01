@@ -11,4 +11,11 @@
     <string name="humanWinsLabel">Human:</string>
     <string name="tiesLabel">Ties:</string>
     <string name="androidWinsLabel">Android:</string>
+    <string name="difficulty_choose">Choose a difficulty level:</string>
+    <string name="difficulty_easy">Easy</string>
+    <string name="difficulty_harder">Harder</string>
+    <string name="difficulty_expert">Expert</string>
+    <string name="quit_question">Are you sure you want to quit?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>
