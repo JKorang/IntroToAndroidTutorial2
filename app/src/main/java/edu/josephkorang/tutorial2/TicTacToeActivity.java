@@ -2,11 +2,13 @@ package edu.josephkorang.tutorial2;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -39,6 +41,7 @@ public class TicTacToeActivity extends ActionBarActivity {
     // Dialog Constraints
     static final int DIALOG_DIFFICULTY_ID = 0;
     static final int DIALOG_QUIT_ID = 1;
+    static final int DIALOG_ABOUT_ID = 2;
 
     /**
      * Called when the activity is first created.
@@ -109,9 +112,15 @@ public class TicTacToeActivity extends ActionBarActivity {
             case R.id.new_game:
                 startNewGame();
                 return true;
+
             case R.id.ai_difficulty:
                 showDialog(DIALOG_DIFFICULTY_ID);
                 return true;
+
+            case R.id.about:
+                showDialog(DIALOG_ABOUT_ID);
+                return true;
+
             case R.id.quit:
                 showDialog(DIALOG_QUIT_ID);
                 return true;
@@ -238,7 +247,7 @@ public class TicTacToeActivity extends ActionBarActivity {
                 else if (mGame.getmDifficultyLevel() == TicTacToeGame.difficultyLevel.Expert)
                     selected = 2;
 
-               // final int selected = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                // final int selected = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
 
                 builder.setSingleChoiceItems(levels, selected,
                         new DialogInterface.OnClickListener() {
@@ -281,6 +290,15 @@ public class TicTacToeActivity extends ActionBarActivity {
                         .setNegativeButton(R.string.no, null);
                 dialog = builder.create();
 
+                break;
+
+            case DIALOG_ABOUT_ID:
+                Context context = getApplicationContext();
+                LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
+                View layout = inflater.inflate(R.layout.dialog_about, null);
+                builder.setView(layout);
+                builder.setPositiveButton("OK", null);
+                dialog = builder.create();
                 break;
         }
 
