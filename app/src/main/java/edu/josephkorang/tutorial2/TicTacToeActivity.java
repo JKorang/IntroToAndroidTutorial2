@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.media.MediaPlayer;
 
 
 public class TicTacToeActivity extends ActionBarActivity {
@@ -43,6 +44,10 @@ public class TicTacToeActivity extends ActionBarActivity {
     static final int DIALOG_DIFFICULTY_ID = 0;
     static final int DIALOG_QUIT_ID = 1;
     static final int DIALOG_ABOUT_ID = 2;
+
+    // Sound Effects
+    MediaPlayer mHumanMediaPlayer;
+    MediaPlayer mComputerMediaPlayer;
 
     /**
      * Called when the activity is first created.
@@ -80,6 +85,21 @@ public class TicTacToeActivity extends ActionBarActivity {
         startNewGame();
     }
 
+    @Override
+    protected void onResume() {        Log.i("TTTAct", "Running onResume");
+        super.onResume();
+        mHumanMediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.sword);
+        mComputerMediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.swish);
+    }
+
+    @Override
+    protected void onPause() {        Log.i("TTTAct", "Running onPause");
+        super.onPause();
+        mHumanMediaPlayer.release();
+        mComputerMediaPlayer.release();
+
+    }
+
     private void initScores() {
 
         Log.i("TTTAct", "Begin obtaining scores");
@@ -106,8 +126,8 @@ public class TicTacToeActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        Log.i("TTTAct", "Running onCreateOptionsMenu");
         super.onCreateOptionsMenu(menu);
-
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.options_menu, menu);
         return true;
@@ -150,6 +170,7 @@ public class TicTacToeActivity extends ActionBarActivity {
 
         // Reset all buttons
         for (int i = 0; i < mBoardButtons.length; i++) {
+            Log.i("TTTAct", "Resetting buttons");
             mBoardButtons[i].setText("");
             mBoardButtons[i].setEnabled(true);
             mBoardButtons[i].setOnClickListener(new ButtonClickListener(i));
@@ -159,9 +180,11 @@ public class TicTacToeActivity extends ActionBarActivity {
 
         if (mFirstMove == true) {
             // Human goes first
+            Log.i("TTTAct", "Waiting on human");
             mInfoTextView.setText(R.string.first_human);
         } else {
             // Computer goes first
+            Log.i("TTTAct", "Waiting on computer");
             mInfoTextView.setText(R.string.turn_computer);
             int move = mGame.getComputerMove();
             setMove(TicTacToeGame.COMPUTER_PLAYER, move);
@@ -171,16 +194,19 @@ public class TicTacToeActivity extends ActionBarActivity {
     }
 
     private void setMove(char player, int location) {
-        Log.i("TTTAct", "Begin set move");
+        Log.i("TTTAct", "Begin set move, player: " + player + ", loc: " + location);
         mGame.setMove(player, location);
         mBoardButtons[location].setEnabled(false);
         mBoardButtons[location].setText(String.valueOf(player));
-        if (player == TicTacToeGame.HUMAN_PLAYER)
+        if (player == TicTacToeGame.HUMAN_PLAYER) {
             mBoardButtons[location].setTextColor(Color.rgb(0, 200, 0));
-        else
+            mHumanMediaPlayer.start();
+        }
+        else{
             mBoardButtons[location].setTextColor(Color.rgb(200, 0, 0));
-        Log.i("TTTAct", "End set move");
-
+            mComputerMediaPlayer.start();
+            Log.i("TTTAct", "End set move");
+        }
     }
 
     // Handles clicks on the game board buttons
@@ -250,6 +276,7 @@ public class TicTacToeActivity extends ActionBarActivity {
 
         switch (id) {
             case DIALOG_DIFFICULTY_ID:
+                Log.i("TTTAct", "Begin choose difficulty");
                 builder.setTitle(R.string.difficulty_choose);
                 final CharSequence[] levels = {
                         getResources().getString(R.string.difficulty_easy),
@@ -297,7 +324,7 @@ public class TicTacToeActivity extends ActionBarActivity {
 
             case DIALOG_QUIT_ID:
                 // Create the quit confirmation dialog
-
+                Log.i("TTTAct", "Begin quit");
                 builder.setMessage(R.string.quit_question)
                         .setCancelable(false)
                         .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
@@ -311,6 +338,7 @@ public class TicTacToeActivity extends ActionBarActivity {
                 break;
 
             case DIALOG_ABOUT_ID:
+                Log.i("TTTAct", "Begin about dialog");
                 Context context = getApplicationContext();
                 LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
                 View layout = inflater.inflate(R.layout.dialog_about, null);
