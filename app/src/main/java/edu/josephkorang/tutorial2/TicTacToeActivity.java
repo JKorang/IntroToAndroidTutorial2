@@ -104,7 +104,6 @@ public class TicTacToeActivity extends ActionBarActivity {
         super.onPause();
         mHumanMediaPlayer.release();
         mComputerMediaPlayer.release();
-
     }
 
     private void initScores() {
@@ -226,10 +225,9 @@ public class TicTacToeActivity extends ActionBarActivity {
             Log.i("TTTAct", "End set move");
         }
         // Handle flop of button control
-        if(mTurnPlayer == true) {
+        if (mTurnPlayer == true) {
             mTurnPlayer = false;
-        }
-        else {
+        } else {
             mTurnPlayer = true;
         }
     }
