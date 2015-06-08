@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,6 +37,10 @@ public class TicTacToeActivity extends ActionBarActivity {
 
     // Who plays first next game
     private Boolean mFirstMove;
+
+    // Current turn tracker
+    // True = Player, False = Computer
+    private Boolean mTurnPlayer;
 
     // Prevents input after game ends
     private Boolean mGameOver;
@@ -86,14 +91,16 @@ public class TicTacToeActivity extends ActionBarActivity {
     }
 
     @Override
-    protected void onResume() {        Log.i("TTTAct", "Running onResume");
+    protected void onResume() {
+        Log.i("TTTAct", "Running onResume");
         super.onResume();
         mHumanMediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.sword);
         mComputerMediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.swish);
     }
 
     @Override
-    protected void onPause() {        Log.i("TTTAct", "Running onPause");
+    protected void onPause() {
+        Log.i("TTTAct", "Running onPause");
         super.onPause();
         mHumanMediaPlayer.release();
         mComputerMediaPlayer.release();
@@ -140,7 +147,7 @@ public class TicTacToeActivity extends ActionBarActivity {
             case R.id.new_game:
                 Log.i("TTTAct", "new_game menu button pressed");
                 startNewGame();
-                Toast.makeText(getApplicationContext(), R.string.newGame,Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), R.string.newGame, Toast.LENGTH_SHORT).show();
                 return true;
 
             case R.id.ai_difficulty:
@@ -182,15 +189,27 @@ public class TicTacToeActivity extends ActionBarActivity {
             // Human goes first
             Log.i("TTTAct", "Waiting on human");
             mInfoTextView.setText(R.string.first_human);
+            mTurnPlayer = true;
         } else {
             // Computer goes first
             Log.i("TTTAct", "Waiting on computer");
             mInfoTextView.setText(R.string.turn_computer);
-            int move = mGame.getComputerMove();
-            setMove(TicTacToeGame.COMPUTER_PLAYER, move);
-            mInfoTextView.setText(R.string.turn_human);
+            mTurnPlayer = false;
+            computerPause();
         }
 
+    }
+
+    private void computerPause() {
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                Log.v("TTTAct", "Computer Delay");
+                int move = mGame.getComputerMove();
+                setMove(TicTacToeGame.COMPUTER_PLAYER, move);
+                mInfoTextView.setText(R.string.turn_human);
+            }
+        }, 1000);
     }
 
     private void setMove(char player, int location) {
@@ -201,11 +220,17 @@ public class TicTacToeActivity extends ActionBarActivity {
         if (player == TicTacToeGame.HUMAN_PLAYER) {
             mBoardButtons[location].setTextColor(Color.rgb(0, 200, 0));
             mHumanMediaPlayer.start();
-        }
-        else{
+        } else {
             mBoardButtons[location].setTextColor(Color.rgb(200, 0, 0));
             mComputerMediaPlayer.start();
             Log.i("TTTAct", "End set move");
+        }
+        // Handle flop of button control
+        if(mTurnPlayer == true) {
+            mTurnPlayer = false;
+        }
+        else {
+            mTurnPlayer = true;
         }
     }
 
@@ -218,44 +243,68 @@ public class TicTacToeActivity extends ActionBarActivity {
         }
 
         public void onClick(View view) {
-            if (mBoardButtons[location].isEnabled()) {
-                setMove(TicTacToeGame.HUMAN_PLAYER, location);
+            if (mTurnPlayer == true) {
+                if (mBoardButtons[location].isEnabled()) {
+                    setMove(TicTacToeGame.HUMAN_PLAYER, location);
 
-                // If no winner yet, let the computer make a move
-                int winner = mGame.checkForWinner();
-                if (winner == 0) {
-                    mInfoTextView.setText(R.string.turn_computer);
-                    int move = mGame.getComputerMove();
-                    setMove(TicTacToeGame.COMPUTER_PLAYER, move);
-                    winner = mGame.checkForWinner();
+                    // If no winner yet, let the computer make a move
+                    int winner = mGame.checkForWinner();
+                    if (winner == 0) {
+
+                        mInfoTextView.setText(R.string.turn_computer);
+                        Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            public void run() {
+                                Log.v("TTTAct", "Computer Delay");
+                                int move = mGame.getComputerMove();
+                                setMove(TicTacToeGame.COMPUTER_PLAYER, move);
+                                mInfoTextView.setText(R.string.turn_human);
+                                int winner = mGame.checkForWinner();
+
+                                if (winner == 0)
+                                    mInfoTextView.setText(R.string.turn_human);
+
+                                else if (winner == 1) {
+                                    mInfoTextView.setText(R.string.result_tie);
+                                    setScores("ties");
+                                } else if (winner == 2) {
+                                    mInfoTextView.setText(R.string.result_human_wins);
+                                    setScores("wins");
+                                } else {
+                                    mInfoTextView.setText(R.string.result_computer_wins);
+                                    setScores("losses");
+                                }
+                            }
+                        }, 1000);
+                    }
+
+                    if (winner == 0)
+                        mInfoTextView.setText(R.string.turn_human);
+
+                    else if (winner == 1) {
+                        mInfoTextView.setText(R.string.result_tie);
+                        setScores("ties");
+                    } else if (winner == 2) {
+                        mInfoTextView.setText(R.string.result_human_wins);
+                        setScores("wins");
+                    } else {
+                        mInfoTextView.setText(R.string.result_computer_wins);
+                        setScores("losses");
+                    }
                 }
 
-                if (winner == 0)
-                    mInfoTextView.setText(R.string.turn_human);
+                // Remove the buttons as clickable
+                if (mGameOver == true) {
+                    for (int i = 0; i < mBoardButtons.length; i++) {
+                        mBoardButtons[i].setEnabled(false);
+                    }
 
-                else if (winner == 1) {
-                    mInfoTextView.setText(R.string.result_tie);
-                    setScores("ties");
-                } else if (winner == 2) {
-                    mInfoTextView.setText(R.string.result_human_wins);
-                    setScores("wins");
-                } else {
-                    mInfoTextView.setText(R.string.result_computer_wins);
-                    setScores("losses");
-                }
-            }
-
-            // Remove the buttons as clickable
-            if (mGameOver == true) {
-                for (int i = 0; i < mBoardButtons.length; i++) {
-                    mBoardButtons[i].setEnabled(false);
-                }
-
-                //Change who goes first next game
-                if (mFirstMove == true) {
-                    mFirstMove = false;
-                } else {
-                    mFirstMove = true;
+                    //Change who goes first next game
+                    if (mFirstMove == true) {
+                        mFirstMove = false;
+                    } else {
+                        mFirstMove = true;
+                    }
                 }
             }
         }
