@@ -248,7 +248,7 @@ public class TicTacToeActivity extends ActionBarActivity {
                     setMove(TicTacToeGame.HUMAN_PLAYER, location);
 
                     // If no winner yet, let the computer make a move
-                    int winner = mGame.checkForWinner();
+                    int winner = checkWinner();
                     if (winner == 0) {
 
                         mInfoTextView.setText(R.string.turn_computer);
@@ -259,57 +259,50 @@ public class TicTacToeActivity extends ActionBarActivity {
                                 int move = mGame.getComputerMove();
                                 setMove(TicTacToeGame.COMPUTER_PLAYER, move);
                                 mInfoTextView.setText(R.string.turn_human);
-                                int winner = mGame.checkForWinner();
-
-                                if (winner == 0)
-                                    mInfoTextView.setText(R.string.turn_human);
-
-                                else if (winner == 1) {
-                                    mInfoTextView.setText(R.string.result_tie);
-                                    setScores("ties");
-                                } else if (winner == 2) {
-                                    mInfoTextView.setText(R.string.result_human_wins);
-                                    setScores("wins");
-                                } else {
-                                    mInfoTextView.setText(R.string.result_computer_wins);
-                                    setScores("losses");
-                                }
+                                int win = checkWinner();
                             }
                         }, 1000);
                     }
-
-                    if (winner == 0)
-                        mInfoTextView.setText(R.string.turn_human);
-
-                    else if (winner == 1) {
-                        mInfoTextView.setText(R.string.result_tie);
-                        setScores("ties");
-                    } else if (winner == 2) {
-                        mInfoTextView.setText(R.string.result_human_wins);
-                        setScores("wins");
-                    } else {
-                        mInfoTextView.setText(R.string.result_computer_wins);
-                        setScores("losses");
-                    }
                 }
-
-                // Remove the buttons as clickable
-                if (mGameOver == true) {
-                    for (int i = 0; i < mBoardButtons.length; i++) {
-                        mBoardButtons[i].setEnabled(false);
-                    }
-
-                    //Change who goes first next game
-                    if (mFirstMove == true) {
-                        mFirstMove = false;
-                    } else {
-                        mFirstMove = true;
-                    }
+                //Change who goes first next game
+                if (mFirstMove == true) {
+                    mFirstMove = false;
+                } else {
+                    mFirstMove = true;
                 }
             }
         }
     }
 
+
+    // Check for winner.
+    // Triggered after each move to verify whether or not TTT is reached
+    private int checkWinner() {
+        int winner = mGame.checkForWinner();
+        if (winner == 0)
+            mInfoTextView.setText(R.string.turn_human);
+
+        else if (winner == 1) {
+            mInfoTextView.setText(R.string.result_tie);
+            setScores("ties");
+        } else if (winner == 2) {
+            mInfoTextView.setText(R.string.result_human_wins);
+            setScores("wins");
+        } else {
+            mInfoTextView.setText(R.string.result_computer_wins);
+            setScores("losses");
+        }
+
+        // Remove the buttons as clickable
+        if (mGameOver == true) {
+            for (int i = 0; i < mBoardButtons.length; i++) {
+                mBoardButtons[i].setEnabled(false);
+            }
+        }
+        return winner;
+    }
+
+    // Set the score within the Shared Preferences
     private void setScores(String typeOfVictory) {
         int scoreToChange = getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE).getInt(typeOfVictory, 0);
         getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE).edit().putInt(typeOfVictory, scoreToChange + 1).commit();
