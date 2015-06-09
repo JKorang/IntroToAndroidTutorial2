@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -124,6 +125,9 @@ public class TicTacToeActivity extends ActionBarActivity {
         mHumanMediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.sword);
         mComputerMediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.swish);
         mSoundOn = mPrefs.getBoolean("sound", true);
+
+        int defaultColor = Color.parseColor("#ffffff");
+        findViewById(R.id.play_grid).setBackgroundColor(mPrefs.getInt("color_box", defaultColor));
     }
 
     @Override

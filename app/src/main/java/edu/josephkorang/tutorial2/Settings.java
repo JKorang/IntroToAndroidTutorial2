@@ -2,11 +2,16 @@ package edu.josephkorang.tutorial2;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.DialogPreference;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+
+import yuku.ambilwarna.AmbilWarnaDialog;
+import yuku.ambilwarna.widget.AmbilWarnaPreference;
+
 
 public class Settings extends PreferenceActivity {
     @Override
@@ -46,6 +51,16 @@ public class Settings extends PreferenceActivity {
                 SharedPreferences.Editor ed = prefs.edit();
                 ed.putString("difficulty_level", newValue.toString());
                 ed.commit();
+                return true;
+            }
+        });
+
+        final AmbilWarnaPreference tableColor = (AmbilWarnaPreference) findPreference("color_box");
+        tableColor.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                SharedPreferences.Editor ed = prefs.edit();
+                ed.putInt("color_box", Integer.valueOf(String.valueOf(newValue))).commit();
                 return true;
             }
         });

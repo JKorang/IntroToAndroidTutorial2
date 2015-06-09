@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:com.github.j4velin.colorpicker="http://schemas.android.com/apk/res-auto">
 
     <CheckBoxPreference
         android:key="sound"
         android:title="Sound"
         android:defaultValue="true"
         android:summary="Turn the sound on or off" />
+
     <EditTextPreference
         android:key="victory_message"
         android:summary=""
@@ -19,4 +21,13 @@
         android:defaultValue="@string/difficulty_expert"
         android:entries="@array/list_difficulty_level"
         android:entryValues="@array/list_difficulty_level" />
+
+    <yuku.ambilwarna.widget.AmbilWarnaPreference
+        android:defaultValue="0xff6699cc"
+        android:title="Pick a color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:summary=""
+        android:key="color_box"
+        />
 </PreferenceScreen>
