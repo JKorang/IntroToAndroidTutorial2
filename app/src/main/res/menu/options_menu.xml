@@ -4,8 +4,8 @@
         android:title="New Game"
         android:icon="@drawable/new_game"
         edu.josephkorang.tutorial2:showAsAction="ifRoom"/>
-    <item android:id="@+id/ai_difficulty"
-        android:title="Difficulty"
+    <item android:id="@+id/options"
+        android:title="Options"
         android:icon="@drawable/difficulty_level"
         edu.josephkorang.tutorial2:showAsAction="ifRoom"/>
     <item android:id="@+id/about"
