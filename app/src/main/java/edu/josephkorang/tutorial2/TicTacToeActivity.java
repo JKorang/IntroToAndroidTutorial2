@@ -47,7 +47,7 @@ public class TicTacToeActivity extends ActionBarActivity {
 
     // Dialog Constraints
     static final int DIALOG_DIFFICULTY_ID = 0;
-    static final int DIALOG_QUIT_ID = 1;
+    static final int DIALOG_RESET_ID = 1;
     static final int DIALOG_ABOUT_ID = 2;
 
     // Sound Effects
@@ -62,7 +62,7 @@ public class TicTacToeActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tic_tac_toe);
 
-
+        mGame = new TicTacToeGame();
         Log.i("TTTAct", "Build buttons, onCreate");
 
         mBoardButtons = new Button[TicTacToeGame.BOARD_SIZE];
@@ -81,13 +81,12 @@ public class TicTacToeActivity extends ActionBarActivity {
         mLossesValue = (TextView) findViewById(R.id.androidWinsValue);
         mTiesValue = (TextView) findViewById(R.id.tiesValue);
 
+        if (savedInstanceState == null) {
+            Log.i("TTTAct", "Begin game");
+            mFirstMove = true;
+            startNewGame();
+        }
         initScores();
-
-        Log.i("TTTAct", "Begin game");
-        mFirstMove = true;
-        mGame = new TicTacToeGame();
-
-        startNewGame();
     }
 
     @Override
@@ -104,6 +103,45 @@ public class TicTacToeActivity extends ActionBarActivity {
         super.onPause();
         mHumanMediaPlayer.release();
         mComputerMediaPlayer.release();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putCharArray("board", mGame.getBoardState());
+        outState.putBoolean("mGameOver", mGameOver);
+        outState.putCharSequence("info", mInfoTextView.getText());
+        outState.putBoolean("mFirstMove", mFirstMove);
+        outState.putBoolean("mTurnPlayer", mTurnPlayer);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mGame.setBoardState(savedInstanceState.getCharArray("board"));
+        rebuildBoard(savedInstanceState.getCharArray("board"));
+        mGameOver = savedInstanceState.getBoolean("mGameOver");
+        mInfoTextView.setText(savedInstanceState.getCharSequence("info"));
+        mFirstMove = savedInstanceState.getBoolean("mFirstMove");
+        mTurnPlayer = savedInstanceState.getBoolean("mTurnPlayer");
+    }
+
+    private void rebuildBoard(char[] board) {
+        for (int i = 0; i < 9; i++) {
+            if (board[i] == ' ') {
+                mBoardButtons[i].setText("");
+                mBoardButtons[i].setEnabled(true);
+                mBoardButtons[i].setOnClickListener(new ButtonClickListener(i));
+            } else {
+                mBoardButtons[i].setText(String.valueOf(board[i]));
+                mBoardButtons[i].setEnabled(false);
+                if (board[i] == TicTacToeGame.HUMAN_PLAYER) {
+                    mBoardButtons[i].setTextColor(Color.rgb(0, 200, 0));
+                } else {
+                    mBoardButtons[i].setTextColor(Color.rgb(200, 0, 0));
+                }
+            }
+        }
     }
 
     private void initScores() {
@@ -159,9 +197,9 @@ public class TicTacToeActivity extends ActionBarActivity {
                 showDialog(DIALOG_ABOUT_ID);
                 return true;
 
-            case R.id.quit:
-                Log.i("TTTAct", "quit menu button pressed");
-                showDialog(DIALOG_QUIT_ID);
+            case R.id.resetScores:
+                Log.i("TTTAct", "reset button pressed");
+                showDialog(DIALOG_RESET_ID);
                 return true;
         }
         return false;
@@ -362,14 +400,21 @@ public class TicTacToeActivity extends ActionBarActivity {
 
                 break;
 
-            case DIALOG_QUIT_ID:
-                // Create the quit confirmation dialog
-                Log.i("TTTAct", "Begin quit");
-                builder.setMessage(R.string.quit_question)
+            case DIALOG_RESET_ID:
+                // Create the reset confirmation dialog
+                Log.i("TTTAct", "Begin reset");
+                builder.setMessage(R.string.reset_question)
                         .setCancelable(false)
                         .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                TicTacToeActivity.this.finish();
+                                SharedPreferences scores = getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE);
+                                //Verify if the fields have been setup yet
+                                //If not, create them within SharedPreferences
+                                scores.edit().putInt("wins", 0).commit();
+                                scores.edit().putInt("ties", 0).commit();
+                                scores.edit().putInt("losses", 0).commit();
+                                scores.edit().putBoolean("init", true).commit();
+                                initScores();
                             }
                         })
                         .setNegativeButton(R.string.no, null);

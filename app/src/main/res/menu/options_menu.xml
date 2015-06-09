@@ -12,8 +12,8 @@
         android:title="About"
         android:icon="@drawable/info"
         edu.josephkorang.tutorial2:showAsAction="ifRoom"/>
-    <item android:id="@+id/quit"
-        android:title="Quit"
-        android:icon="@drawable/quit_game"
+    <item android:id="@+id/resetScores"
+        android:title="Reset Scores"
+        android:icon="@drawable/reset"
         edu.josephkorang.tutorial2:showAsAction="ifRoom"/>
 </menu>

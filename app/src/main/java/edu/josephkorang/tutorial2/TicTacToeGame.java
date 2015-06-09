@@ -199,5 +199,13 @@ public class TicTacToeGame {
     public void setmDifficultyLevel(difficultyLevel dLvl) {
         mDifficultyLevel = dLvl;
     }
+
+    public void setBoardState(char[] board){
+        this.mBoard = board.clone();
+    }
+
+    public char[] getBoardState(){
+        return mBoard;
+    }
 }
 
