@@ -54,6 +54,9 @@ public class TicTacToeActivity extends ActionBarActivity {
     MediaPlayer mHumanMediaPlayer;
     MediaPlayer mComputerMediaPlayer;
 
+    private SharedPreferences mPrefs;
+
+
     /**
      * Called when the activity is first created.
      */
@@ -61,8 +64,21 @@ public class TicTacToeActivity extends ActionBarActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tic_tac_toe);
-
+        mPrefs = getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE);
         mGame = new TicTacToeGame();
+        switch (mPrefs.getInt("difficulty", 0)) {
+            case 0:
+                mGame.setmDifficultyLevel(TicTacToeGame.difficultyLevel.Easy);
+                break;
+            case 1:
+                mGame.setmDifficultyLevel(TicTacToeGame.difficultyLevel.Harder);
+                break;
+            case 2:
+                mGame.setmDifficultyLevel(TicTacToeGame.difficultyLevel.Expert);
+                break;
+        }
+        System.out.println(mGame.getmDifficultyLevel().toString() + " , " + mPrefs.getInt("wins", 0));
+
         Log.i("TTTAct", "Build buttons, onCreate");
 
         mBoardButtons = new Button[TicTacToeGame.BOARD_SIZE];
@@ -124,6 +140,9 @@ public class TicTacToeActivity extends ActionBarActivity {
         mInfoTextView.setText(savedInstanceState.getCharSequence("info"));
         mFirstMove = savedInstanceState.getBoolean("mFirstMove");
         mTurnPlayer = savedInstanceState.getBoolean("mTurnPlayer");
+        if (mTurnPlayer == false) {
+            computerPause();
+        }
     }
 
     private void rebuildBoard(char[] board) {
@@ -148,21 +167,21 @@ public class TicTacToeActivity extends ActionBarActivity {
 
         Log.i("TTTAct", "Begin obtaining scores");
         //Handle saving/loading of wins and losses
-        SharedPreferences scores = this.getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE);
-        Boolean init = scores.getBoolean("init", false);
+        Boolean init = mPrefs.getBoolean("init", false);
         //Verify if the fields have been setup yet
         //If not, create them within SharedPreferences
         if (init == false) {
-            scores.edit().putInt("wins", 0).commit();
-            scores.edit().putInt("ties", 0).commit();
-            scores.edit().putInt("losses", 0).commit();
-            scores.edit().putBoolean("init", true).commit();
+            mPrefs.edit().putInt("wins", 0).commit();
+            mPrefs.edit().putInt("ties", 0).commit();
+            mPrefs.edit().putInt("losses", 0).commit();
+            mPrefs.edit().putBoolean("init", true).commit();
+            mPrefs.edit().putInt("difficulty", 0).commit();
         }
         //The scores do exist. Load them into the appropriate TextViews.
         else {
-            mWinsValue.setText(String.valueOf(scores.getInt("wins", 0)));
-            mTiesValue.setText(String.valueOf(scores.getInt("ties", 0)));
-            mLossesValue.setText(String.valueOf(scores.getInt("losses", 0)));
+            mWinsValue.setText(String.valueOf(mPrefs.getInt("wins", 0)));
+            mTiesValue.setText(String.valueOf(mPrefs.getInt("ties", 0)));
+            mLossesValue.setText(String.valueOf(mPrefs.getInt("losses", 0)));
         }
         Log.i("TTTAct", "End obtaining scores");
     }
@@ -268,6 +287,14 @@ public class TicTacToeActivity extends ActionBarActivity {
         } else {
             mTurnPlayer = true;
         }
+        System.out.println(toString());
+    }
+
+    @Override
+    public	String	toString() {
+        return mBoardButtons[0].getText() + "|" + mBoardButtons[1].getText() + "|" + mBoardButtons[2].getText() + "\n" +
+                mBoardButtons[3].getText() + "|" + mBoardButtons[4].getText() + "|" + mBoardButtons[5].getText() + "\n" +
+                mBoardButtons[6].getText() + "|" + mBoardButtons[7].getText() + "|" + mBoardButtons[8].getText();
     }
 
     // Handles clicks on the game board buttons
@@ -291,14 +318,19 @@ public class TicTacToeActivity extends ActionBarActivity {
                         Handler handler = new Handler();
                         handler.postDelayed(new Runnable() {
                             public void run() {
-                                Log.v("TTTAct", "Computer Delay");
-                                int move = mGame.getComputerMove();
-                                setMove(TicTacToeGame.COMPUTER_PLAYER, move);
-                                mInfoTextView.setText(R.string.turn_human);
-                                int win = checkWinner();
+                                try {
+                                    Log.v("TTTAct", "Computer Delay");
+                                    int move = mGame.getComputerMove();
+                                    setMove(TicTacToeGame.COMPUTER_PLAYER, move);
+                                    mInfoTextView.setText(R.string.turn_human);
+                                    int win = checkWinner();
+                                }
+                                catch (Exception e) {
+                                }
                             }
-                        }, 1000);
+                        }, 1000);}
                     }
+
                 }
                 //Change who goes first next game
                 if (mFirstMove == true) {
@@ -308,7 +340,7 @@ public class TicTacToeActivity extends ActionBarActivity {
                 }
             }
         }
-    }
+
 
 
     // Check for winner.
@@ -340,8 +372,8 @@ public class TicTacToeActivity extends ActionBarActivity {
 
     // Set the score within the Shared Preferences
     private void setScores(String typeOfVictory) {
-        int scoreToChange = getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE).getInt(typeOfVictory, 0);
-        getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE).edit().putInt(typeOfVictory, scoreToChange + 1).commit();
+        int scoreToChange = mPrefs.getInt(typeOfVictory, 0);
+        mPrefs.edit().putInt(typeOfVictory, scoreToChange + 1).commit();
 
         mGameOver = true;
         initScores();
@@ -389,6 +421,8 @@ public class TicTacToeActivity extends ActionBarActivity {
                                         break;
                                 }
 
+                                mPrefs.edit().putInt("difficulty", item).commit();
+
                                 startNewGame();
 
                                 // Display the selected difficulty level
@@ -407,13 +441,12 @@ public class TicTacToeActivity extends ActionBarActivity {
                         .setCancelable(false)
                         .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                SharedPreferences scores = getSharedPreferences("edu.josephkorang.tutorial2", MODE_PRIVATE);
                                 //Verify if the fields have been setup yet
                                 //If not, create them within SharedPreferences
-                                scores.edit().putInt("wins", 0).commit();
-                                scores.edit().putInt("ties", 0).commit();
-                                scores.edit().putInt("losses", 0).commit();
-                                scores.edit().putBoolean("init", true).commit();
+                                mPrefs.edit().putInt("wins", 0).commit();
+                                mPrefs.edit().putInt("ties", 0).commit();
+                                mPrefs.edit().putInt("losses", 0).commit();
+                                mPrefs.edit().putBoolean("init", true).commit();
                                 initScores();
                             }
                         })
