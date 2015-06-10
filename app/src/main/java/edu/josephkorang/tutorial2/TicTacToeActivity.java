@@ -7,8 +7,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
@@ -22,6 +22,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.media.MediaPlayer;
+
+import java.io.File;
+import java.io.FileOutputStream;
 
 
 public class TicTacToeActivity extends ActionBarActivity {
@@ -57,7 +60,12 @@ public class TicTacToeActivity extends ActionBarActivity {
     MediaPlayer mComputerMediaPlayer;
     private Boolean mSoundOn;
 
+    // SharedPreferences global
     private SharedPreferences mPrefs;
+
+    // File IO
+    File file = new File(Environment.getExternalStorageDirectory() + "/debug.txt");
+    FileOutputStream fileStream;
 
 
     /**
@@ -181,14 +189,16 @@ public class TicTacToeActivity extends ActionBarActivity {
                     computerPause();
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
 
         }
     }
 
     private void initScores() {
-
+        try {
+            fileStream.write("TTTAct: Loading scores\n\n".getBytes());
+        } catch (Exception e) {
+        }
         Log.i("TTTAct", "Begin obtaining scores");
         //Handle saving/loading of wins and losses
         Boolean init = mPrefs.getBoolean("init", false);
@@ -207,9 +217,16 @@ public class TicTacToeActivity extends ActionBarActivity {
             mTiesValue.setText(String.valueOf(mPrefs.getInt("ties", 0)));
             mLossesValue.setText(String.valueOf(mPrefs.getInt("losses", 0)));
         }
+
+        try {
+            fileStream.write(("Player wins: " + mWinsValue.getText() + "\n").getBytes());
+            fileStream.write(("Player losses: " + mLossesValue.getText() + "\n").getBytes());
+            fileStream.write(("Ties: " + mTiesValue.getText() + "\n\n").getBytes());
+
+        } catch (Exception e) {
+        }
         Log.i("TTTAct", "End obtaining scores");
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -251,7 +268,18 @@ public class TicTacToeActivity extends ActionBarActivity {
 
     // Set up the game board.
     private void startNewGame() {
+        try {
 
+            if (fileStream == null) {
+                System.out.println("Yeah it's null");
+                if(!file.exists()) {
+                    file.createNewFile();
+                }
+                fileStream = new FileOutputStream(file);
+            }
+            fileStream.write("TTTAct: Starting new game\n".getBytes());
+        } catch (Exception e) {
+        }
         mGame.clearBoard();
         mGameOver = false;
 
@@ -293,6 +321,10 @@ public class TicTacToeActivity extends ActionBarActivity {
     }
 
     private void setMove(char player, int location) {
+        try {
+            fileStream.write(("TTTAct: I am in setMove(), about to move for " + player + "\n").getBytes());
+        } catch (Exception e) {
+        }
         Log.i("TTTAct", "Begin set move, player: " + player + ", loc: " + location);
         mGame.setMove(player, location);
         mBoardButtons[location].setEnabled(false);
@@ -315,14 +347,18 @@ public class TicTacToeActivity extends ActionBarActivity {
         } else {
             mTurnPlayer = true;
         }
-        System.out.println(toString());
+        try {
+            fileStream.write(("TTTAct: Current board state" + "\n").getBytes());
+            fileStream.write(toString().getBytes());
+        } catch (Exception e) {
+        }
     }
 
     @Override
     public String toString() {
         return mBoardButtons[0].getText() + "|" + mBoardButtons[1].getText() + "|" + mBoardButtons[2].getText() + "\n" +
                 mBoardButtons[3].getText() + "|" + mBoardButtons[4].getText() + "|" + mBoardButtons[5].getText() + "\n" +
-                mBoardButtons[6].getText() + "|" + mBoardButtons[7].getText() + "|" + mBoardButtons[8].getText();
+                mBoardButtons[6].getText() + "|" + mBoardButtons[7].getText() + "|" + mBoardButtons[8].getText() + "\n" + "\n";
     }
 
     // Handles clicks on the game board buttons
@@ -336,6 +372,10 @@ public class TicTacToeActivity extends ActionBarActivity {
         public void onClick(View view) {
             if (mTurnPlayer == true) {
                 if (mBoardButtons[location].isEnabled()) {
+                    try {
+                        fileStream.write(("Cell that was touched: " + location + "\n").getBytes());
+                    } catch (Exception e) {
+                    }
                     setMove(TicTacToeGame.HUMAN_PLAYER, location);
 
                     // If no winner yet, let the computer make a move
@@ -394,6 +434,26 @@ public class TicTacToeActivity extends ActionBarActivity {
         if (mGameOver == true) {
             for (int i = 0; i < mBoardButtons.length; i++) {
                 mBoardButtons[i].setEnabled(false);
+            }
+
+            try {
+                String winningString = "Error: No winner";
+                switch (winner) {
+                    case 1:
+                        winningString = "There was no winner -- Tie";
+                        break;
+                    case 2:
+                        winningString = "There was a winner for " + mGame.HUMAN_PLAYER;
+                        break;
+                    case 3:
+                        winningString = "There was a winner for " + mGame.COMPUTER_PLAYER;
+                        break;
+                }
+                fileStream.write(("TTTAct: " + winningString + "\n").getBytes());
+                fileStream.write(("I am closing the debug file" + "\n").getBytes());
+                fileStream.close();
+                fileStream = null;
+            } catch (Exception e) {
             }
         }
         return winner;
